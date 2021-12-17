@@ -5,7 +5,7 @@
  *
  * @link https://github.com/S1SYPHOS/php-gesetze
  * @license https://www.gnu.org/licenses/gpl-3.0.txt GPL v3
- * @version 0.4.1
+ * @version 0.5.0
  */
 
 namespace S1SYPHOS\Gesetze;
@@ -27,12 +27,7 @@ class Gesetz
      *
      * @var array
      */
-    public $drivers = [
-        'gesetze'    => null,
-        'dejure'     => null,
-        'buzer'      => null,
-        'lexparency' => null,
-    ];
+    public $drivers = [];
 
 
     /**
@@ -48,7 +43,7 @@ class Gesetz
      *
      * For reference:
      *
-     * '/(?:§+|Art\.?|Artikel)\s*(\d+(?:\w\b)?)\s*(?:(?:Abs(?:atz|\.)\s*)?((?:\d+|[XIV]+)(?:\w\b)?))?\s*(?:(?:S\.|Satz)\s*(\d+))?\s*(?:(?:Nr\.|Nummer)\s*(\d+(?:\w\b)?))?\s*(?:(?:lit\.|litera|Buchst\.|Buchstabe)\s*([a-z]?))?.{0,10}?(\b[A-Z][A-Za-z]*[A-Z](?:(?:\s|\b)[XIV]+)?)/'
+     * '/(?:§+|Art\.?|Artikel)\s*(\d+(?:\w\b)?)\s*(?:(?:Abs(?:atz|\.)\s*)?((?:\d+|[XIV]+)(?:\w\b)?))?\s*(?:(?:S\.|Satz)\s*(\d+))?\s*(?:(?:Nr\.|Nummer)\s*(\d+(?:\w\b)?))?\s*(?:(?:lit\.|litera|Buchst\.|Buchstabe)\s*([a-z]?))?.{0,10}?(\b[A-Z][A-Za-z]*[A-Z](?:(?:\s|\b)[XIV]+)?\b)/'
      */
     public static $pattern = ''
         # Start
@@ -68,7 +63,7 @@ class Gesetz
         # Character limit
         . '.{0,10}?'
         # Law ('Gesetz')
-        . '(\b[A-Z][A-Za-z]*[A-Z](?:(?:\s|\b)[XIV]+)?)'
+        . '(\b[A-Z][A-Za-z]*[A-Z](?:(?:\s|\b)[XIV]+)?\b)'
         # End
         . '/';
 
@@ -111,59 +106,48 @@ class Gesetz
 
 
     /**
-     * Defines whether laws & legal norms should be validated upon extracting / linking
-     *
-     * @var bool
-     */
-    public $validate = true;
-
-
-    /**
      * Constructor
      *
-     * @param string $driver Provider identifier
+     * @param mixed $driver Provider identifier
      * @return void
-     * @throws \Exception
      */
-    public function __construct(string $driver = 'gesetze')
+    public function __construct($order = 'gesetze')
     {
-        if (!array_key_exists($driver, $this->drivers)) {
-            throw new \Exception(sprintf('Invalid driver: "%s"', $driver));
-        }
+        # List available drivers
+        $drivers = [
+            # (1) 'gesetze-im-internet.de'
+            'gesetze' => '\S1SYPHOS\Gesetze\Drivers\GesetzeImInternet',
+            # (2) 'dejure.org'
+            'dejure' => '\S1SYPHOS\Gesetze\Drivers\DejureOnline',
+            # (3) 'buzer.de'
+            'buzer' => '\S1SYPHOS\Gesetze\Drivers\Buzer',
+            # (4) 'lexparency.de'
+            'lexparency' => '\S1SYPHOS\Gesetze\Drivers\Lexparency',
+        ];
 
-        # Move preferred driver to the beginning (if necessary)
-        if ($driver !== array_keys($this->drivers)[0]) {
-            # (1) Remove preference
-            unset($this->drivers[$driver]);
-
-            # (2) Readd at beginning
-            $this->drivers = array_merge([$driver => null], $this->drivers);
+        # If string was passed as order ..
+        if (is_string($order)) {
+            # .. make it an array
+            $order = [$order];
         }
 
         # Iterate over available drivers ..
-        array_walk($this->drivers, function(&$object, $driver) {
-            # .. initializing each one of them
-            # (1) 'gesetze-im-internet.de'
-            if ($driver === 'gesetze') {
-                $object = new \S1SYPHOS\Gesetze\Drivers\GesetzeImInternet();
-
+        foreach (array_keys($drivers) as $driver) {
+            # .. but skip default one(s)
+            if (in_array($driver, $order)) {
+                continue;
             }
 
-            # (2) 'dejure.org'
-            if ($driver === 'dejure') {
-                $object = new \S1SYPHOS\Gesetze\Drivers\DejureOnline();
-            }
+            # Add to order
+            $order[] = $driver;
+        }
 
-            # (3) 'buzer.de'
-            if ($driver === 'buzer') {
-                $object = new \S1SYPHOS\Gesetze\Drivers\Buzer();
+        # Initialize drivers
+        foreach ($order as $driver) {
+            if (in_array($driver, array_keys($drivers))) {
+                $this->drivers[$driver] = new $drivers[$driver]();
             }
-
-            # (4) 'lexparency.de'
-            if ($driver === 'lexparency') {
-                $object = new \S1SYPHOS\Gesetze\Drivers\Lexparency();
-            }
-        });
+        }
     }
 
 
@@ -175,14 +159,21 @@ class Gesetz
      * Converts roman numerals to arabic numerals
      *
      * @param string $string
-     * @return string
+     * @return int
+     * @throws \Exception
      */
-    public static function roman2arabic(string $string): string
+    public static function roman2arabic(string $string)
     {
-        if (!preg_match('/[IVX]+/', $string)) {
-            return $string;
+        # If one of the characters represents an invalid roman numeral ..
+        if (!preg_match('/[IVXLCDM]+/i', $string)) {
+            # .. throw error
+            throw new \Exception('Input contains invalid character.');
         }
 
+        # Transform string to uppercase
+        $string = strtoupper($string);
+
+        # Map roman numerals to their arabic equivalent
         # See https://stackoverflow.com/a/6266158
         $romans = [
             'M'  => 1000,
@@ -209,7 +200,7 @@ class Gesetz
             }
         }
 
-        return (string) $result;
+        return $result;
     }
 
 
@@ -268,46 +259,6 @@ class Gesetz
 
 
     /**
-     * Extracts legal norms from text
-     *
-     * @param string $string Text
-     * @return array Formatted regex matches
-     */
-    public function extract(string $string, bool $roman2arabic = false): array
-    {
-        # Look for legal norms in text
-        if (preg_match_all(self::$pattern, $string, $matches)) {
-            # Create data array
-            $data = [];
-
-            foreach ($matches[0] as $index => $match) {
-                $array = ['match' => $match];
-
-                foreach (array_slice($matches, 1) as $i => $results) {
-                    $array[self::$groups[$i]] = $results[$index];
-                }
-
-                # Block invalid laws & legal norms (if enabled)
-                if ($this->validate && !$this->validate($array)) {
-                    continue;
-                }
-
-                # Convert roman to arabic numerals (if enabled)
-                if ($roman2arabic) {
-                    $array['absatz'] = self::roman2arabic($array['absatz']);
-                }
-
-                $data[] = $array;
-            }
-
-            return $data;
-        }
-
-        return [];
-    }
-
-
-    /**
      * Transforms legal references into HTML link tags
      *
      * @param string $string Unprocessed text
@@ -315,20 +266,25 @@ class Gesetz
      */
     public function linkify(string $string): string
     {
-        # Extract matching legal norms
-        $matches = $this->extract($string);
+        return preg_replace_callback(self::$pattern, function(array $matches): string {
+            # Create match array, consisting of ..
+            $match = array_merge(
+                # (1) .. full match (first entry)
+                ['match' => $matches[0]],
 
-        # If none were found ..
-        if (empty($matches)) {
-            # .. return original text
-            return $string;
-        }
+                # (2) .. combined capture group names & remaining entries
+                array_combine(self::$groups, array_slice($matches, 1))
+            );
 
-        # Iterate over matches
-        foreach ($matches as $match) {
-            foreach ($this->drivers as $object) {
-                # Block invalid laws & legal norms (if enabled)
-                if ($this->validate && !$object->validate($match)) {
+            # Iterate over drivers for each match ..
+            foreach ($this->drivers as $driver => $object) {
+                # (1) .. skipping blocked drivers
+                if (in_array($driver, $this->blockList)) {
+                    continue;
+                }
+
+                # (2).. blocking invalid laws & legal norms
+                if (!$object->validate($match)) {
                     continue;
                 }
 
@@ -352,7 +308,7 @@ class Gesetz
             }
 
             if (!isset($attributes['href'])) {
-                continue;
+                return $matches[0];
             }
 
             # Build `a` tag
@@ -362,12 +318,7 @@ class Gesetz
             }, array_keys($attributes), array_values($attributes));
 
             # (2) Combine everything
-            $link = '<a ' . implode(' ', $attributes) . '>' . $match['match'] . '</a>';
-
-            # Replace matched legal norm with its `a` tag
-            $string = str_replace($match['match'], $link, $string);
-        }
-
-        return $string;
+            return '<a ' . implode(' ', $attributes) . '>' . $match['match'] . '</a>';
+        }, $string);
     }
 }
