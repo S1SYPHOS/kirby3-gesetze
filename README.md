@@ -1,7 +1,6 @@
 # Kirby3 Gesetze
-[![Release](https://img.shields.io/github/release/S1SYPHOS/kirby3-gesetze.svg)](https://github.com/S1SYPHOS/kirby3-gesetze/releases) [![License](https://img.shields.io/github/license/S1SYPHOS/kirby3-gesetze.svg)](https://github.com/S1SYPHOS/kirby3-gesetze/blob/main/LICENSE) [![Issues](https://img.shields.io/github/issues/S1SYPHOS/kirby3-gesetze.svg)](https://github.com/S1SYPHOS/kirby3-gesetze/issues)
 
-This plugin automatically links german legal norms - GDPR-friendly, no strings (= API calls) attached, powered by [`php-gesetze`](https://github.com/S1SYPHOS/php-gesetze).
+This plugin automatically links german legal norms - dependency-free & GDPR-friendly, powered by [`php-gesetze`](https://codeberg.org/S1SYPHOS/php-gesetze).
 
 
 ## Getting started
@@ -14,7 +13,7 @@ Use one of the following methods to install & use `kirby3-gesetze`:
 If you know your way around Git, you can download this plugin as a [submodule](https://github.com/blog/2104-working-with-submodules):
 
 ```text
-git submodule add https://github.com/S1SYPHOS/kirby3-gesetze.git site/plugins/kirby3-gesetze
+git submodule add https://codeberg.org/S1SYPHOS/kirby3-gesetze.git site/plugins/kirby3-gesetze
 ```
 
 
@@ -27,7 +26,7 @@ composer require s1syphos/kirby3-gesetze
 
 ### Clone or download
 
-1. [Clone](https://github.com/S1SYPHOS/kirby3-gesetze.git) or [download](https://github.com/S1SYPHOS/kirby3-gesetze/archive/main.zip) this repository.
+1. [Clone](https://codeberg.org/S1SYPHOS/kirby3-gesetze.git) or [download](https://codeberg.org/S1SYPHOS/kirby3-gesetze/archive/main.zip) this repository.
 2. Unzip / Move the folder to `site/plugins`.
 
 
@@ -113,7 +112,7 @@ Same as `gesetzify`, but supports applying `kt()` / `kti()` via `$inline` option
 
 ## Credits / License
 
-`kirby3-gesetze` is based on [`php-gesetze`](https://github.com/S1SYPHOS/php-gesetze) library. It is licensed under the [MIT License](LICENSE), but **using Kirby in production** requires you to [buy a license](https://getkirby.com/buy).
+`kirby3-gesetze` is based on [`php-gesetze`](https://codeberg.org/S1SYPHOS/php-gesetze) library. It is licensed under the [MIT License](LICENSE), but **using Kirby in production** requires you to [buy a license](https://getkirby.com/buy).
 
 
 ## Special Thanks

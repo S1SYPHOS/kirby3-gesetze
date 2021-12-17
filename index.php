@@ -5,7 +5,7 @@
  *
  * @package   Kirby CMS
  * @author    S1SYPHOS <hello@twobrain.io>
- * @link      http://github.com/S1SYPHOS\kirby3-gesetze
+ * @link      http://codeberg.org/S1SYPHOS\kirby3-gesetze
  * @version   1.0.0
  * @license   MIT
  */

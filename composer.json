@@ -1,6 +1,6 @@
 {
     "name": "s1syphos/kirby3-gesetze",
-    "description": "Linking german legal norms for Kirby v3",
+    "description": "Linking german legal norms for Kirby v3, dependency-free & GDPR-friendly",
     "type": "kirby-plugin",
     "license": "MIT",
     "version": "1.0.0",
